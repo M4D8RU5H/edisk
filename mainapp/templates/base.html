@@ -83,6 +83,7 @@
     </style>
     </head>
 
+    <!--Navbar-->
     <body>
         <nav id="nav" class="navbar navbar-expand-lg navbar-dark shadow-1-strong fixed-top">
             <div class="container-fluid">
@@ -91,6 +92,30 @@
                     <input name="q" class="form-control me-2" type="search" placeholder="Wyszukaj" aria-label="Search">
                     <button class="button-30" role="button" type="submit"   >-></button>
                 </form>
+            </div>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                {% if user.is_authenticated %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Welcome, {{user.username}}</a>
+                </li>
+
+                {% else %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+
+                {% endif %}
+                </ul>
             </div>
         </nav>
 
