@@ -1,7 +1,8 @@
 from django import forms
 from multiupload.fields import MultiFileField
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
+from .models import User
 
 
 class NewUserForm(UserCreationForm):
@@ -17,6 +18,11 @@ class NewUserForm(UserCreationForm):
 		if commit:
 			user.save()
 		return user
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta:
+        model = User
+        fields = '__all__'
 
 class MyfileUploadForm(forms.Form):
     file_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))

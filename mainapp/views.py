@@ -1,5 +1,5 @@
 from typing import Counter
-from django.shortcuts import render, HttpResponse,redirect
+from django.shortcuts import render, HttpResponse, redirect
 from os import listdir
 from os.path import isfile, join
 from django.shortcuts import render
