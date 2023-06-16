@@ -87,8 +87,6 @@ def register_request(request):
 		form = NewUserForm(request.POST)
 		if form.is_valid():
 			user = form.save()
-			user.storage_space = 100.0
-			user.save()
 			login(request, user)
 			messages.success(request, "Registration successful." )
 			return redirect("home")
@@ -119,4 +117,4 @@ def login_request(request):
 def logout_request(request):
 	logout(request)
 	messages.info(request, "You have successfully logged out.")
-	#return redirect("home")
+	return redirect("home")
