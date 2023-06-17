@@ -30,14 +30,25 @@ def index(request):
         print(form.as_p)
 
         if form.is_valid():
-            the_files = form.cleaned_data['files_data']
-            the_files = form.files.getlist('files_data')
-            for i in the_files:
-                 file_upload( my_file=i).save()
+            user = request.user
+            file_size = request.FILES['file'].size
 
+            if user.storage_space >= file_size:
+                file = form.save(commit=False)
+                file.user = user
+                file.save()
+                user.storage_space -= file_size
+                user.save()
+                the_files = form.cleaned_data['files_data']
+                the_files = form.files.getlist('files_data')
+                for i in the_files:
+                    file_upload( my_file=i).save()
 
+                return HttpResponse("file upload")
 
-            return HttpResponse("file upload")
+            else:
+                 messages.error(request, 'Brak miejsca na dysku')
+
         else:
             length=[]
             all_data = file_upload.objects.all()
@@ -115,4 +126,4 @@ def login_request(request):
 def logout_request(request):
 	logout(request)
 	messages.info(request, "You have successfully logged out.")
-	#return redirect("home")
+	return redirect("home")
