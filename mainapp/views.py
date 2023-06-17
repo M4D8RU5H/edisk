@@ -21,8 +21,7 @@ def index(request):
     myfiles = [f for f in listdir(media_path) if isfile(join(media_path, f))]
 
     for a in range(len(myfiles)):
-
-                file_upload( my_file=myfiles[a]).save()
+        file_upload( my_file=myfiles[a]).save()
 
     if request.method == 'POST':
         form = MyfileUploadForm(request.POST, request.FILES)
@@ -53,16 +52,32 @@ def index(request):
             length=[]
             all_data = file_upload.objects.all()
             the_files = form.files.getlist('files_data')
-            for i in the_files:
-                 file_upload( my_file=i).save()
-                 b = i
-                 length.append(b)
-            context = {
-                'filedata':the_files,
-                'data':all_data,
-                'len':length
-            }
-            return render(request,'uploaded.html',context)
+
+            file_size = 0
+            for f in the_files:
+                file_size += f.size
+
+            user = request.user
+
+            if user.storage_space >= file_size:
+#                file.user = user
+                user.storage_space -= file_size
+                user.save()
+
+                for i in the_files:
+                     file_upload( my_file=i).save()
+                     b = i
+                     length.append(b)
+                context = {
+                    'filedata':the_files,
+                    'data':all_data,
+                    'len':length
+                }
+                return render(request,'uploaded.html',context)
+
+
+            else:
+                 messages.error(request, 'Brak miejsca na dysku')
 
     else:
         if 'q' in request.GET:
@@ -74,7 +89,8 @@ def index(request):
             'datas':myfiles ,
             'data': all_data,
             'no_files':numof
-           }    
+           }
+
             return render(request, 'index.html', context)
         else:
              all_data = file_upload.objects.all()
@@ -84,8 +100,8 @@ def index(request):
             'datas':myfiles ,
             'data': all_data,
             'no_files':numof
-        }      
-        
+        }
+
         return render(request, 'index.html', context)
 
 
@@ -94,7 +110,6 @@ def register_request(request):
 		form = NewUserForm(request.POST)
 		if form.is_valid():
 			user = form.save()
-			user.storage_space = 100.0
 			user.save()
 			login(request, user)
 			messages.success(request, "Registration successful." )
