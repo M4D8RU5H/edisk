@@ -1,3 +1,4 @@
+import os
 from typing import Counter
 from django.shortcuts import render, HttpResponse, redirect
 from os import listdir
@@ -17,11 +18,15 @@ from myproj import settings
 def index(request):
     file_upload.objects.all().delete()
     all_data = file_upload.objects.all()
-    media_path = settings.MEDIA_ROOT
-    myfiles = [f for f in listdir(media_path) if isfile(join(media_path, f))]
+    user = request.user
 
-    for a in range(len(myfiles)):
-        file_upload( my_file=myfiles[a]).save()
+    myfiles = None
+    if user.is_authenticated:
+        upload_path = user.upload_path
+        myfiles = [f for f in listdir(upload_path) if isfile(join(upload_path, f))]
+
+        for a in range(len(myfiles)):
+            file_upload( my_file=myfiles[a]).save()
 
     if request.method == 'POST':
         form = MyfileUploadForm(request.POST, request.FILES)
@@ -29,7 +34,6 @@ def index(request):
         print(form.as_p)
 
         if form.is_valid():
-            user = request.user
             file_size = request.FILES['file'].size
 
             if user.storage_space >= file_size:
@@ -94,10 +98,14 @@ def index(request):
             return render(request, 'index.html', context)
         else:
              all_data = file_upload.objects.all()
-        numof = len(myfiles)
+
+        numof = 0
+        if user.is_authenticated:
+            numof = len(myfiles)
+
         context = {
             'form':MyfileUploadForm(),
-            'datas':myfiles ,
+            'datas':myfiles,
             'data': all_data,
             'no_files':numof
         }
@@ -106,17 +114,21 @@ def index(request):
 
 
 def register_request(request):
-	if request.method == "POST":
-		form = NewUserForm(request.POST)
-		if form.is_valid():
-			user = form.save()
-			user.save()
-			login(request, user)
-			messages.success(request, "Registration successful." )
-			return redirect("home")
-		messages.error(request, "Unsuccessful registration. Invalid information.")
-	form = NewUserForm()
-	return render (request=request, template_name="register.html", context={"register_form":form})
+    if request.method == "POST":
+        form = NewUserForm(request.POST)
+
+        if form.is_valid():
+            user = form.save()
+            user.upload_path = os.path.join(settings.MEDIA_ROOT, user.username + "/")
+            os.mkdir(user.upload_path)
+            user.save()
+            login(request, user)
+            messages.success(request, "Registration successful." )
+            return redirect("home")
+
+        messages.error(request, "Unsuccessful registration. Invalid information.")
+    form = NewUserForm()
+    return render (request=request, template_name="register.html", context={"register_form":form})
 
 
 def login_request(request):
