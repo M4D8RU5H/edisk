@@ -1,6 +1,6 @@
 import os
 from typing import Counter
-from django.shortcuts import render, HttpResponse, redirect
+from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
 from os import listdir
 from os.path import isfile, join
 from django.shortcuts import render
@@ -16,17 +16,11 @@ from myproj import settings
 
 
 def index(request):
-    file_upload.objects.all().delete()
-    all_data = file_upload.objects.all()
     user = request.user
-
     myfiles = None
-    if user.is_authenticated:
-        upload_path = user.upload_path
-        myfiles = [f for f in listdir(upload_path) if isfile(join(upload_path, f))]
 
-        for a in range(len(myfiles)):
-            file_upload( my_file=myfiles[a]).save()
+    if user.is_authenticated:
+        myfiles = user.files.all()
 
     if request.method == 'POST':
         form = MyfileUploadForm(request.POST, request.FILES)
@@ -36,24 +30,24 @@ def index(request):
         if form.is_valid():
             file_size = request.FILES['file'].size
 
-            if user.storage_space >= file_size:
+            if user.storage_space - user.used_storage_space >= file_size:
                 file = form.save(commit=False)
                 file.save()
-                user.storage_space -= file_size
+                user.used_storage_space += file_size
                 user.save()
                 the_files = form.cleaned_data['files_data']
                 the_files = form.files.getlist('files_data')
-                for i in the_files:
-                    file_upload( my_file=i).save()
+                for f in the_files:
+                    FileModel(owner=user, file=f).save()
 
                 return HttpResponse("file upload")
 
             else:
                  messages.error(request, 'Brak miejsca na dysku')
+                 return redirect("home")
 
         else:
             length=[]
-            all_data = file_upload.objects.all()
             the_files = form.files.getlist('files_data')
 
             file_size = 0
@@ -62,41 +56,41 @@ def index(request):
 
             user = request.user
 
-            if user.storage_space >= file_size:
-#                file.owner = user
-                user.storage_space -= file_size
+            if user.storage_space - user.used_storage_space >= file_size:
+                user.used_storage_space += file_size
                 user.save()
 
-                for i in the_files:
-                     file_upload( my_file=i).save()
-                     b = i
+                for f in the_files:
+                     FileModel(owner=user, file=f).save()
+                     b = f
                      length.append(b)
+
                 context = {
                     'filedata':the_files,
-                    'data':all_data,
+                    'data':myfiles,
                     'len':length
                 }
-                return render(request,'uploaded.html',context)
+
+                return render(request,'uploaded.html', context)
 
 
             else:
                  messages.error(request, 'Brak miejsca na dysku')
+                 return redirect("home")
 
     else:
         if 'q' in request.GET:
-            q= request.GET['q']
-            all_data = file_upload.objects.filter(my_file__icontains=q)
-            numof = len(all_data)
+            q = request.GET['q']
+            numof = len(myfiles)
+
             context = {
-            'form':MyfileUploadForm(),
-            'datas':myfiles ,
-            'data': all_data,
-            'no_files':numof
-           }
+                'form':MyfileUploadForm(),
+                'datas':myfiles ,
+                'data':myfiles,
+                'no_files':numof
+            }
 
             return render(request, 'index.html', context)
-        else:
-             all_data = file_upload.objects.all()
 
         numof = 0
         if user.is_authenticated:
@@ -105,11 +99,40 @@ def index(request):
         context = {
             'form':MyfileUploadForm(),
             'datas':myfiles,
-            'data': all_data,
+            'data':myfiles,
             'no_files':numof
         }
 
         return render(request, 'index.html', context)
+
+
+def delete_file(request, file_id):
+    file_model = get_object_or_404(FileModel, ids=file_id)
+    file_path = os.path.join(settings.MEDIA_ROOT, file_model.file.name)
+    user = request.user
+    user.used_storage_space -= file_model.file.size
+    user.save()
+    file_model.delete()
+    os.remove(file_path)
+    return redirect('home')
+
+
+def rename_file(request, file_id):
+    file_model = get_object_or_404(FileModel, ids=file_id)
+
+    if request.method == 'POST':
+        new_name = request.POST.get('new_name')
+        if new_name:
+            os.rename(os.path.join(settings.MEDIA_ROOT, file_model.file.name), os.path.join(settings.MEDIA_ROOT, new_name))
+            file_model.file.name = new_name
+            file_model.save()
+            return redirect('home')
+
+    context = {
+        'file': file_model,
+    }
+
+    return render(request, 'rename_file.html', context)
 
 
 def register_request(request):
@@ -118,8 +141,6 @@ def register_request(request):
 
         if form.is_valid():
             user = form.save()
-            user.upload_path = os.path.join(settings.MEDIA_ROOT, user.username + "/")
-            os.mkdir(user.upload_path)
             user.save()
             login(request, user)
             messages.success(request, "Registration successful." )

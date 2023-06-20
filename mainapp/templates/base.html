@@ -97,21 +97,22 @@
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarText">
+
+            <div class="collapse navbar-collapse" style="width: 12%" id="navbarText">
                 <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/logout">Logout</a>
+                    <a class="nav-link" style="color: #FFF" href="#">Witaj, {{user.username}}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Welcome, {{user.username}}</a>
+                    <a class="nav-link" style="color: #FFF" href="/logout">Wyloguj się</a>
                 </li>
 
                 {% else %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/login">Login</a>
+                    <a class="nav-link" href="/login">Zaloguj się</a>
                 </li>
 
                 {% endif %}

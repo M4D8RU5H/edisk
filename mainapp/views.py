@@ -44,6 +44,7 @@ def index(request):
 
             else:
                  messages.error(request, 'Brak miejsca na dysku')
+                 return redirect("home")
 
         else:
             length=[]
@@ -75,6 +76,7 @@ def index(request):
 
             else:
                  messages.error(request, 'Brak miejsca na dysku')
+                 return redirect("home")
 
     else:
         if 'q' in request.GET:
