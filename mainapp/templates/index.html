@@ -64,7 +64,7 @@
         <div class="container mt-5">
             <div class="row">
                 <div class="col-12">
-
+                {% if no_files > 0 %}
                     <table style=" color: white; font-size: 2vh;" class="table">
                         <thead>
                             <tr>
@@ -97,6 +97,9 @@
                             </tr>
                         </tbody>
                     </table>
+                    {% else %}
+                    <h3 style="text-align: center; color: #FFF">Na twoim dysku nie ma jeszcze żadnych plików!</h3>
+                    {% endif %}
                 </div>
             </div>
         </div>
