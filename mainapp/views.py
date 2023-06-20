@@ -1,6 +1,6 @@
 import os
 from typing import Counter
-from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
+from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, get_list_or_404
 from os import listdir
 from os.path import isfile, join
 from django.shortcuts import render
@@ -82,12 +82,13 @@ def index(request):
 
     else:
         if 'q' in request.GET:
-            q = request.GET['q']
+            query = request.GET['q']
+            myfiles = user.files.filter(file__icontains=query)
             numof = len(myfiles)
 
             context = {
                 'form':MyfileUploadForm(),
-                'datas':myfiles ,
+                'datas':myfiles,
                 'data':myfiles,
                 'no_files':numof
             }
