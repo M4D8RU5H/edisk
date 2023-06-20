@@ -37,14 +37,16 @@ def index(request):
                 user.save()
                 the_files = form.cleaned_data['files_data']
                 the_files = form.files.getlist('files_data')
+
                 for f in the_files:
                     FileModel(owner=user, file=f).save()
 
-                return HttpResponse("file upload")
+                messages.success(request, 'Plik został pomyślnie załadowany na dysk')
 
             else:
-                 messages.error(request, 'Brak miejsca na dysku')
-                 return redirect("home")
+                messages.error(request, 'Brak miejsca na dysku')
+
+            return redirect("home")
 
         else:
             length=[]
@@ -71,12 +73,12 @@ def index(request):
                     'len':length
                 }
 
-                return render(request,'uploaded.html', context)
-
+                messages.success(request, 'Plik został załadowany na dysk')
 
             else:
-                 messages.error(request, 'Brak miejsca na dysku')
-                 return redirect("home")
+                messages.error(request, 'Brak miejsca na dysku')
+
+            return redirect("home")
 
     else:
         if 'q' in request.GET:
@@ -114,6 +116,7 @@ def delete_file(request, file_id):
     user.save()
     file_model.delete()
     os.remove(file_path)
+    messages.success(request, "Plik został usunięty z dysku")
     return redirect('home')
 
 
@@ -126,6 +129,7 @@ def rename_file(request, file_id):
             os.rename(os.path.join(settings.MEDIA_ROOT, file_model.file.name), os.path.join(settings.MEDIA_ROOT, new_name))
             file_model.file.name = new_name
             file_model.save()
+            messages.success(request, "Pomyślnie zmieniono nazwę pliku")
             return redirect('home')
 
     context = {
@@ -143,10 +147,11 @@ def register_request(request):
             user = form.save()
             user.save()
             login(request, user)
-            messages.success(request, "Registration successful." )
+            messages.success(request, "Rejestracja zakończyła się pomyślnie" )
             return redirect("home")
 
-        messages.error(request, "Unsuccessful registration. Invalid information.")
+        messages.error(request, "Rejestracja nie zakończyła się pomyślnie")
+
     form = NewUserForm()
     return render (request=request, template_name="register.html", context={"register_form":form})
 
@@ -160,17 +165,17 @@ def login_request(request):
 			user = authenticate(username=username, password=password)
 			if user is not None:
 				login(request, user)
-				messages.info(request, f"You are now logged in as {username}.")
+				messages.info(request, f"Jesteś zalogowany jako {username}.")
 				return redirect("home")
 			else:
-				messages.error(request,"Invalid username or password.")
+				messages.error(request,"Zła nazwa użytkownika lub hasło.")
 		else:
-			messages.error(request,"Invalid username or password.")
+			messages.error(request,"Zła nazwa użytkownika lub hasło.")
 	form = AuthenticationForm()
 	return render(request=request, template_name="login.html", context={"login_form":form})
 
 
 def logout_request(request):
 	logout(request)
-	messages.info(request, "You have successfully logged out.")
+	messages.info(request, "Wylogowano się pomyślnie.")
 	return redirect("home")
