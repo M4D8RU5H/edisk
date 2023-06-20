@@ -58,7 +58,8 @@
                             <tr>
                                 <th ><h4>Nr.</h4> </th>
                                 <th ><h4>Pliki</h4> </th>
-                                <th><h4>Pobierz</h4> </th>
+                                <th><h4></h4></th>
+                                <th><h4></h4></th>
                                 <th ></th>
                             </tr>
                         </thead>
@@ -68,10 +69,13 @@
                             <tr>
                                 <th>{{forloop.counter}}</th>
                                 <th>
-                                    <a target="_blank" href="{{d.my_file.url}}"><h6 style=" color:white; font-size: 2vh;" class="line"> {{d.my_file}}</h6></a>
+                                    <a target="_blank" href="{{d.file.url}}"><h6 style=" color:white; font-size: 2vh;" class="line"> {{d.file}}</h6></a>
                                 </th>
                                 <th>
-                                  <a download href="{{d.my_file.url}}"><button class="button-30" role="button"><h6 class="line">Pobierz</h6></button></a>
+                                    <a download href="{{d.file.url}}"><button class="button-30" role="button"><h6 class="line">Pobierz</h6></button></a>
+                                </th>
+                                <th>
+                                     <a href="{% url 'delete_file' file_id=d.ids %}">Usuń</a>
                                 </th>
                                 {% endfor %}
                             </tr>

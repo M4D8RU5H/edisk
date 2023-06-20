@@ -1,6 +1,7 @@
+import os
 from django.db import models
 from myproj import settings
-
+from accounts.models import User
 
 class file_upload(models.Model):
     ids = models.AutoField(primary_key=True)
@@ -12,6 +13,5 @@ class file_upload(models.Model):
 
 class FileModel(models.Model):
     ids = models.AutoField(primary_key=True)
-    file = models.FileField(null=True, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    path = models.FilePathField(path=settings.MEDIA_ROOT, default=settings.MEDIA_ROOT)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files', default=1)
+    file = models.FileField(upload_to='')
