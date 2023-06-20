@@ -30,10 +30,10 @@ def index(request):
         if form.is_valid():
             file_size = request.FILES['file'].size
 
-            if user.storage_space >= file_size:
+            if user.storage_space - user.used_storage_space >= file_size:
                 file = form.save(commit=False)
                 file.save()
-                user.storage_space -= file_size
+                user.used_storage_space += file_size
                 user.save()
                 the_files = form.cleaned_data['files_data']
                 the_files = form.files.getlist('files_data')
@@ -55,8 +55,8 @@ def index(request):
 
             user = request.user
 
-            if user.storage_space >= file_size:
-                user.storage_space -= file_size
+            if user.storage_space - user.used_storage_space >= file_size:
+                user.used_storage_space += file_size
                 user.save()
 
                 for f in the_files:
@@ -106,9 +106,31 @@ def index(request):
 
 def delete_file(request, file_id):
     file_model = get_object_or_404(FileModel, ids=file_id)
-    os.remove(os.path.join(settings.MEDIA_ROOT, file_model.file.name))
+    file_path = os.path.join(settings.MEDIA_ROOT, file_model.file.name)
+    user = request.user
+    user.used_storage_space -= file_model.file.size
+    user.save()
     file_model.delete()
+    os.remove(file_path)
     return redirect('home')
+
+
+def rename_file(request, file_id):
+    file_model = get_object_or_404(FileModel, ids=file_id)
+
+    if request.method == 'POST':
+        new_name = request.POST.get('new_name')
+        if new_name:
+            os.rename(os.path.join(settings.MEDIA_ROOT, file_model.file.name), os.path.join(settings.MEDIA_ROOT, new_name))
+            file_model.file.name = new_name
+            file_model.save()
+            return redirect('home')
+
+    context = {
+        'file': file_model,
+    }
+
+    return render(request, 'rename_file.html', context)
 
 
 def register_request(request):

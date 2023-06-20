@@ -45,7 +45,10 @@
                 </div>
                 {% csrf_token %}
                 <button type="submit" class="button-30" role="button">Prześlij</button>
-                <button  class="button-30" role="button">Liczba plików : {{no_files}}</button>
+                <button  class="button-30" disabled>Liczba plików : {{no_files}}</button>
+                {% if user.is_authenticated %}
+                <button  class="button-30" disabled>Używane miejsce : {{user.used_storage_space_gb}}GB / {{user.storage_space_gb}}GB</button>
+                {% endif %}
             </form>
         </div>
 
@@ -58,6 +61,7 @@
                             <tr>
                                 <th ><h4>Nr.</h4> </th>
                                 <th ><h4>Pliki</h4> </th>
+                                <th><h4></h4></th>
                                 <th><h4></h4></th>
                                 <th><h4></h4></th>
                                 <th ></th>
@@ -76,6 +80,9 @@
                                 </th>
                                 <th>
                                      <a href="{% url 'delete_file' file_id=d.ids %}">Usuń</a>
+                                </th>
+                                <th>
+                                     <a href="{% url 'rename_file' file_id=d.ids %}">Zmień nazwę</a>
                                 </th>
                                 {% endfor %}
                             </tr>
